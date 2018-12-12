@@ -1,184 +1,821 @@
-<!DOCTYPE html>
 <html>
-<head>
-	<title>Tugas 3</title>
-	<style type="text/css">
-		body {
-			margin: 0;
-			overflow: hidden;
-		}
-		canvas, div {
-			width: 50%;
-			height: 50%;
-			margin: 0px !important;
-		}
-	</style>
-</head>
-<body>
-	<div id="threeJSOutput1"></div>
-	<div id="threeJSOutput2"></div>
-	<div id="threeJSOutput3"></div>
-	<div id="threeJSOutput4"></div>
-	<script type="text/javascript" src="js/three.js"></script>
-	<script type="text/javascript" src="js/orbitControls.js"></script>
-	<script type="text/javascript" src="js/dat.gui.js"></script>
-	<script type="text/javascript">
-		var scene;
-		var camera1, camera2, camera3, camera4;
-		var renderer1, renderer2, renderer3, renderer4;
+	<head>
+		<title>Tugas 3</title>
+		<meta http-equiv="content-type" content="text/html" charset="ISO-8859(-1)">
 
-		function init() {
-			scene = new THREE.Scene();
+		<script type="text/javascript" src="gl-matrix-min.js"></script>
 
-			camera1 = new THREE.PerspectiveCamera(
-				45,
-				(window.innerWidth/2 - 1)/(window.innerHeight/2),
-				0.01,
-				1000.00);
-			camera1.position.set(8,0,-10);
-			camera1.lookAt(scene.position);
+		<script id="texture-shader-fs" type="x-shader/x-fragment">
+			precision mediump float;
+			varying vec2 vTextureCoord;
+			uniform sampler2D uSampler;
+			varying vec4 vColor;
+			void main(void) {
+				gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t))*vColor;
+			}
+		</script>
+		
+		<script id="texture-shader-vs" type="x-shader/x-vertex">
+			attribute vec3 aVertexPosition;
+			attribute vec2 aTextureCoord;
+			uniform mat4 uMVMatrix;
+			uniform mat4 uPMatrix;
+			varying vec2 vTextureCoord;
 
-			camera2 = new THREE.PerspectiveCamera(
-				45,
-				(window.innerWidth/2)/(window.innerHeight/2),
-				0.01,
-				1000.00);
-			camera2.position.set(8,0,-10);
-			camera2.lookAt(scene.position);
+			attribute vec4 aVertexColor;
+			varying vec4 vColor;
 
-			camera3 = new THREE.PerspectiveCamera(
-				45,
-				(window.innerWidth/2)/(window.innerHeight/2),
-				0.01,
-				1000.00);
-			camera3.position.set(8,0,-10);
-			camera3.lookAt(scene.position);
-
-			camera4 = new THREE.PerspectiveCamera(
-				45,
-				(window.innerWidth/2)/(window.innerHeight/2),
-				0.01,
-				1000.00);
-			camera4.position.set(8,0,-10);
-			camera4.lookAt(scene.position);
-
-			renderer1 = new THREE.WebGLRenderer();
-			renderer1.setClearColor(new THREE.Color("rgb(255,255,255)"));
-			renderer1.setSize((window.innerWidth/2),(window.innerHeight/2));
-			renderer1.shadowMap.Enabled = true;
-
-			renderer2 = new THREE.WebGLRenderer();
-			renderer2.setClearColor(new THREE.Color("rgb(255,255,255)"));
-			renderer2.setSize((window.innerWidth/2),(window.innerHeight/2));
-			renderer2.shadowMap.Enabled = true;
-
-			renderer3 = new THREE.WebGLRenderer();
-			renderer3.setClearColor(new THREE.Color("rgb(255,255,255)"));
-			renderer3.setSize((window.innerWidth/2),(window.innerHeight/2));
-			renderer3.shadowMap.Enabled = true;
-
-			renderer4 = new THREE.WebGLRenderer();
-			renderer4.setClearColor(new THREE.Color("rgb(255,255,255)"));
-			renderer4.setSize((window.innerWidth/2),(window.innerHeight/2));
-			renderer4.shadowMap.Enabled = true;
-
-			var cubeGeometry = new THREE.BoxGeometry(5, 5, 5);
-			var cubeMaterial = new THREE.MeshLambertMaterial({
-				color: "#000000",
-				wireframe: true
-			});
-			var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-			cube.position.x = 0;
-			cube.position.y = 0;
-			cube.position.z = 0;
-			cube.rotation.x = 0;
-			cube.rotation.y = 0;
-			cube.rotation.z = 0;
-
-			scene.add(cube);
-
-			var wall1Geometry = new THREE.PlaneGeometry(5, 5);
-			var wall1Material = new THREE.MeshLambertMaterial({
-				color: "#000000",
-				wireframe: false
-			});
-			var wall1 = new THREE.Mesh(wall1Geometry, wall1Material);
-			wall1.position.x = 0;
-			wall1.position.y = 0;
-			wall1.position.z = 5;
-			wall1.rotation.x = 0;
-			wall1.rotation.y = 0;
-			wall1.rotation.z = Math.PI/2;
-
-			scene.add(wall1);
-
-			var targetGeometry = new THREE.BoxGeometry(0.5,0.5,0.5);
-			var targetMaterial = new THREE.MeshStandardMaterial({
-				color: 0x7777ff,
-				wireframe: false
-			});
-			var target = new THREE.Mesh(targetGeometry, targetMaterial);
-			target.position.x = 0;
-			target.position.y = 0;
-			target.position.z = 0;
-			scene.add(target);
-
-			var ambientLight = new THREE.AmbientLight({color: 0xffffff});
-			scene.add(ambientLight);
-			var spotLight = new THREE.SpotLight( 0xffffff );
-			spotLight.position.set( 0, 1000, 0 );
-
-			spotLight.castShadow = true;
-
-			spotLight.shadow.mapSize.width = 1024;
-			spotLight.shadow.mapSize.height = 1024;
-
-			spotLight.shadow.camera.near = 500;
-			spotLight.shadow.camera.far = 4000;
-			spotLight.shadow.camera.fov = 30;
-
-			scene.add( spotLight );
-
-			document.getElementById("threeJSOutput1").appendChild(renderer1.domElement);
-			document.getElementById("threeJSOutput2").appendChild(renderer2.domElement);
-			document.getElementById("threeJSOutput3").appendChild(renderer3.domElement);
-			document.getElementById("threeJSOutput4").appendChild(renderer4.domElement);
-
-			var rotY = 0.05;
-			var xMove = (Math.random() * 0.5) - 0.25;
-			var yMove = (Math.random() * 0.5) - 0.25;
-			var zMove = (Math.random() * 0.5) - 0.25;
-
-			function animate() {
-				requestAnimationFrame(animate);
-
-				target.position.x += xMove * 0.1;
-				target.position.y += yMove * 0.1;
-				target.position.z += zMove * 0.1;
-				target.rotation.y += rotY;
-				if ((target.position.x <= -2.5) || (target.position.x >= 2.5)) {
-					xMove *= -1;
-					rotY *= -1;
+			void main(void) {
+				gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+				vColor = aVertexColor;
+				vTextureCoord = aTextureCoord;
+			}
+		</script>
+		<script type="text/javascript">
+			/** @type {WebGLRenderingContext} */
+			var gl
+			function initGL(canvas) {
+				try {
+					gl = canvas.getContext('webgl')
+					gl.viewportWidth = canvas.width
+					gl.viewportHeight = canvas.height
+				} catch (e) {}
+				if (!gl) {
+					alert('Tidak bisa menginisialisasi WebGL')
 				}
-				if ((target.position.y <= -2.5) || (target.position.y >= 2.5)) {
-					yMove *= -1;
-					rotY *= -1;
+			}
+
+			function getShader(gl, id) {
+				var shaderScript = document.getElementById(id)
+				if (!shaderScript) {
+					return null
 				}
-				if ((target.position.z <= -2.5) || (target.position.z >= 2.5)) {
-					zMove *= -1;
-					rotY *= -1;
+				var str = ''
+				var k = shaderScript.firstChild
+				while (k) {
+					if (k.nodeType == 3) {
+						str += k.textContent
+					}
+					k = k.nextSibling
+				}
+				var shader
+				if (shaderScript.type == 'x-shader/x-fragment') {
+					shader = gl.createShader(gl.FRAGMENT_SHADER)
+				} else if (shaderScript.type = 'x-shader/x-vertex') {
+					shader = gl.createShader(gl.VERTEX_SHADER)
+				} else {
+					return null
+				}
+				gl.shaderSource(shader, str)
+				gl.compileShader(shader)
+				if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+					alert(gl.getShaderInfoLog(shader))
+					return null
+				}
+				return shader
+			}
+			var shaderProgram
+			function Scene(initSet) {
+			  var initSet = initSet
+			  var gl = initSet.gl
+			  var mvMatrix = mat4.create()
+			  var pMatrix = mat4.create()
+
+			  this.mvMatrix = mvMatrix
+			  this.pMatrix = pMatrix
+
+			  this.initSet = initSet
+			  var shaderProgram = initSet.shaderProgram
+			  this.shaderProgram = shaderProgram
+
+			  function setMatrixUniforms(shaderProgram,n) {
+			    gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix)
+			    gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix)  
+			  }
+			  
+			  this.defaultDrawScene = function(){
+
+			    gl.disableVertexAttribArray(shaderProgram.vertexColorAttribute);
+			    gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute)
+			    gl.vertexAttrib4f(shaderProgram.vertexColorAttribute, 1, 1, 1, 1);
+
+			    gl.bindBuffer(gl.ARRAY_BUFFER, initSet.cubeVertexPositionBuffer)
+			    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(initSet.cube.positions), gl.STATIC_DRAW)
+			    gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, initSet.cubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0)
+
+			    gl.bindBuffer(gl.ARRAY_BUFFER, initSet.cubeTextureCoordBuffer)
+			    gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, initSet.cubeTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0)
+
+			    
+			    gl.activeTexture(gl.TEXTURE0)
+			    gl.bindTexture(gl.TEXTURE_2D, initSet.crateTextures[2])
+			    gl.uniform1i(shaderProgram.samplerUniform, 0)
+
+			    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, initSet.cubeVertexIndexBuffer)
+			    setMatrixUniforms(shaderProgram)
+
+			    gl.drawElements(gl.TRIANGLE_STRIP, initSet.cubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0)
+			    
+			    let whiteTex = gl.createTexture();
+			    gl.disableVertexAttribArray(shaderProgram.textureCoordAttribute);
+			    gl.bindTexture(gl.TEXTURE_2D, whiteTex);
+			    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0.5, 0.5, 1.0, 1.0]));
+
+			    
+			    gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
+			    gl.bindBuffer(gl.ARRAY_BUFFER, initSet.alphabetVertexPositionBuffer)
+			    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(initSet.alphabet.positions), gl.STATIC_DRAW)
+			    gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, initSet.alphabetVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0)
+
+			    setMatrixUniforms(shaderProgram)
+			    gl.drawArrays(gl.TRIANGLE_STRIP, 0, initSet.alphabetVertexPositionBuffer.numItems)
+
+			  }
+
+
+			  this.setGlViewPort = function(sx,sy,w,h){
+			    gl.viewport(sx,sy,w,h)
+			  }
+			  //please override this  
+			  this.drawScene = function(sx,sy,w,h){
+			    this.setGlViewPort(sx,sy,w,h)
+			    this.defaultDrawScene()
+			  }
+
+			}
+
+			function mvPopMatrix() {
+				if (mvMatrixStack.length == 0) {
+					throw "Tumpukan matriks kosong"
+				}
+				mvMatrix = mvMatrixStack.pop()
+			}
+			function setMatrixUniforms() {
+				gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix)
+				gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix)
+			}
+
+			var sVertexPositionBuffer
+			var sVertexColorBuffer
+			var cubeVertexPositionBuffer
+			var cubeVertexColorBuffer
+			var sBound = []
+			var ss
+			var cBound = []
+			var cb
+			function Shader(gl,prefixId,attrIntializer){
+
+			    this.shaderProgram = undefined
+
+			    this.getShaderProgram = function(){
+			      return this.shaderProgram
+			    }
+
+			    this._getShader = function(gl, id) {
+			      this.gl = gl
+			      var shaderScript = document.getElementById(id)
+			      if (!shaderScript) {
+			        return null
+			      }
+			      var str = ''
+			      var k = shaderScript.firstChild
+			      while (k) {
+			        if (k.nodeType == 3) {
+			          str += k.textContent
+			        }
+			        k = k.nextSibling
+			      }
+			      var shader
+			      if (shaderScript.type == 'x-shader/x-fragment') {
+			        shader = gl.createShader(gl.FRAGMENT_SHADER)
+			      } else if (shaderScript.type = 'x-shader/x-vertex') {
+			        shader = gl.createShader(gl.VERTEX_SHADER)
+			      } else {
+			        return null
+			      }
+			      gl.shaderSource(shader, str)
+			      gl.compileShader(shader)
+			      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+			        alert(gl.getShaderInfoLog(shader))
+			        return null
+			      }
+			      return shader
+			    }
+			    var fragmentShader = this._getShader(gl, prefixId+'-fs')
+			    var vertexShader = this._getShader(gl, prefixId+'-vs')
+			    
+			    this.shaderProgram = gl.createProgram()
+			    let shaderProgram = this.shaderProgram
+			    gl.attachShader(shaderProgram, fragmentShader)
+			    gl.attachShader(shaderProgram, vertexShader)
+
+			    gl.linkProgram(shaderProgram)
+
+			    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+			      alert('Tidak bisa menginisialisasi shaders')
+			    }
+			    attrIntializer.execute(gl,shaderProgram)
+
+			}
+			function ObjectinitSet(GL,shader){
+				var gl = GL
+				this.gl = gl
+
+				this.shaderProgram = shader.getShaderProgram()
+				var shaderProgram = this.shaderProgram
+				var alphabetVertexPositionBuffer
+				var alphabetVertexColorBuffer
+				var cubeVertexPositionBuffer
+				var cubeVertexNormalBuffer
+				var cubeTextureCoordBuffer
+				var cubeVertexIndexBuffer
+				
+				function do2dRotation(matrix,degree,xCenter,yCenter,xColumnIndex,yColumnIndex,xSpeed,ySpeed){
+					var cos_t = Math.cos(degree)
+					var sin_t = Math.sin(degree)
+					for(var i = 0; i < matrix.length; i+=3){
+						var x = matrix[i+xColumnIndex] - xCenter
+						var y = matrix[i+yColumnIndex] - yCenter
+						matrix[i+xColumnIndex] = x*cos_t - y*sin_t + xCenter
+						matrix[i+yColumnIndex] = x*sin_t + y*cos_t + yCenter
+					}
+					var sx = xSpeed
+					var sy = ySpeed
+					xSpeed = sx*cos_t - sy*sin_t
+					ySpeed = sx*sin_t + sy*cos_t
 				}
 				
-				renderer1.render(scene, camera1);
-				renderer2.render(scene, camera2);
-				renderer3.render(scene, camera3);
-				renderer4.render(scene, camera4);
-			}
-			animate();
-		}
-		
-	    window.onload = init;
+				function do3dTranslation(object){
+					
+					object.x+=object.xSpeed
+					object.y+=object.ySpeed
+					object.z+=object.zSpeed
+					for(var i=0;i<object.positions.length;i+=3){
+						object.positions[i]+=object.xSpeed
+						object.positions[i+1]+=object.ySpeed
+						object.positions[i+2]+=object.zSpeed
+					}
+				}
+				
+				function getRandomRangeNumber(lower,upper){
+					return (Math.random() * (upper - lower) + lower)
+				}
 
-	</script>
-</body>
+				function handleLoadedTexture(textures) {
+					gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
+					// Sampler 1
+					gl.bindTexture(gl.TEXTURE_2D, textures[0])
+					gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textures[0].image)
+					gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+					gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+					// Sampler 2
+					gl.bindTexture(gl.TEXTURE_2D, textures[1])
+					gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textures[1].image)
+					gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+					gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+					// Sampler 3
+					gl.bindTexture(gl.TEXTURE_2D, textures[2])
+					gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textures[2].image)
+					gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+					gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST)
+					gl.generateMipmap(gl.TEXTURE_2D)
+
+					gl.bindTexture(gl.TEXTURE_2D, null)
+				}
+
+				var crateTextures = Array()
+				this.crateTextures = crateTextures
+				function initTexture () {
+					var crateImage = new Image()
+					for (var i = 0; i < 3; i++) {
+						var texture = gl.createTexture()
+						texture.image = crateImage
+						crateTextures.push(texture)
+					}
+					crateImage.onload = function () {
+						handleLoadedTexture(crateTextures)
+					}
+					crateImage.src = 'Crate.jpg'
+				}
+
+				initTexture()
+
+				var attrs = this
+				var alphabet = {
+					positions:[],colors:[],
+					x:0.0,y:0.0,z:0.0,
+					xSpeed:0.0,ySpeed:0.0,zSpeed:0.0,
+					isClockWiseRotation:true,
+					vec:[1,1,0]
+				}
+				alphabet.positions = [
+					//front layer
+		            -1.0,  1.5, 0.2,
+		            -0.5,    1, 0.2,
+		            -1.0, -1.5, 0.2,
+		            -0.5,   -1, 0.2,
+		               1, -1.5, 0.2,
+		             0.7,   -1, 0.2,
+		             1.5,   -1, 0.2,
+		               1, -0.7, 0.2,
+		             1.5,    1, 0.2,
+		               1,  0.7, 0.2,
+		               1,  1.5, 0.2,
+		             0.7,    1, 0.2,
+		            -1.0,  1.5, 0.2,
+		            -0.5,    1, 0.2,
+		            //Outer layer
+		            -1.0,  1.5, -0.2,
+		            -1.0,  1.5,  0.2,
+		               1,  1.5,  0.2,
+		               1,  1.5, -0.2,
+		             1.5,    1,  0.2,
+		             1.5,    1, -0.2,
+		             1.5,   -1,  0.2,
+		             1.5,   -1, -0.2,
+		               1, -1.5,  0.2,
+		               1, -1.5, -0.2,
+		            -1.0, -1.5,  0.2,
+		            -1.0, -1.5, -0.2,
+		            -1.0,  1.5,  0.2,
+		            -1.0,  1.5, -0.2,
+		            //back layer
+		            -0.5,    1, -0.2,
+		            -1.0, -1.5, -0.2,
+		            -0.5,   -1, -0.2,
+		               1, -1.5, -0.2,
+		             0.7,   -1, -0.2,
+		             1.5,   -1, -0.2,
+		               1, -0.7, -0.2,
+		             1.5,    1, -0.2,
+		               1,  0.7, -0.2,
+		               1,  1.5, -0.2,
+		             0.7,    1, -0.2,
+		            -1.0,  1.5, -0.2,
+		            -0.5,    1, -0.2,
+		            //inner layer
+		            -0.5,    1,  0.2,
+		             0.7,    1, -0.2,
+		             0.7,    1,  0.2,
+		               1,  0.7, -0.2,
+		               1,  0.7,  0.2,
+		               1, -0.7, -0.2,
+		               1, -0.7,  0.2,
+		             0.7,   -1, -0.2,
+		             0.7,   -1,  0.2,
+		            -0.5,   -1, -0.2,
+		            -0.5,   -1,  0.2,
+		            -0.5,    1, -0.2,
+		            -0.5,    1,  0.2
+				]
+				alphabet.x = 0.125     
+				alphabet.y = 0.125
+				alphabet.z = 0.125
+				alphabet.yRotation = 0
+
+				alphabet.updatePosition = function(){
+					this.x+=this.xSpeed
+					this.y+=this.ySpeed
+					this.z+=this.zSpeed
+				}
+
+				alphabet.checkCollision = function(){
+					var positions = this.positions
+					for(var i=0;i<positions.length;i+=3){
+						if(positions[i] <= -5 && this.xSpeed < 0.0){
+							this.isClockWiseRotation = !this.isClockWiseRotation
+							return {collide:"left"}
+						}
+						else if(positions[i] >= 5 && this.xSpeed > 0.0){
+							this.isClockWiseRotation = !this.isClockWiseRotation
+							return {collide:"right"}
+						}
+						else if(positions[i+1] <= -5 && this.ySpeed < 0.0){
+							this.isClockWiseRotation = !this.isClockWiseRotation
+							return {collide:"bottom"}
+						}
+						else if(positions[i+1] >= 5 && this.ySpeed > 0.0){
+							this.isClockWiseRotation = !this.isClockWiseRotation
+							return {collide:"top"}
+						}
+						else if(positions[i+2] <= -5 && this.zSpeed < 0.0){
+							this.isClockWiseRotation = !this.isClockWiseRotation
+							return {collide:"back"}
+						}
+						else if(positions[i+2] >= 5 && this.zSpeed > 0){
+							this.isClockWiseRotation = !this.isClockWiseRotation
+							return {collide:"front"}
+						}
+					}
+					return {collide:"none"}
+				}
+				
+				var cube = {positions:[],colors:[],x:0.0,y:0.0,z:0.0,xSpeed:0.0,ySpeed:0.0,zSpeed:0.0,vec:[1.0,0.0,1.0]}
+
+				alphabet.xSpeed = getRandomRangeNumber(-0.08,0.08)
+				alphabet.ySpeed = getRandomRangeNumber(-0.08,0.08)
+				alphabet.zSpeed = getRandomRangeNumber(-0.08,0.08)
+			
+				cube.positions = [
+					//back
+					-5, -5, -5,
+					 5, -5, -5,
+					 5,  5, -5,
+					-5,  5, -5,
+					//left
+					-5, -5,  5,
+					-5, -5, -5,
+					-5,  5, -5,
+					-5,  5,  5,
+					//bottom
+					 5, -5, -5,
+					 5, -5,  5,
+					-5, -5,  5,
+					-5, -5, -5
+				]
+				cube.z = 0
+
+				
+				this.initBuffers = function() {
+					alphabetVertexPositionBuffer = gl.createBuffer()
+					gl.bindBuffer(gl.ARRAY_BUFFER, alphabetVertexPositionBuffer)
+					gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(alphabet.positions), gl.STATIC_DRAW)
+					alphabetVertexPositionBuffer.itemSize = 3
+					alphabetVertexPositionBuffer.numItems = alphabet.positions.length/3
+					alphabetVertexColorBuffer = gl.createBuffer()
+					gl.bindBuffer(gl.ARRAY_BUFFER, alphabetVertexColorBuffer)
+					alphabet.colors = []
+					for (var i=0; i < alphabetVertexPositionBuffer.numItems; i++) {
+						alphabet.colors = alphabet.colors.concat([0.5, 0.5, 1.0, 1.0])
+					}
+					alphabetVertexColorBuffer.itemSize = 4
+					alphabetVertexColorBuffer.numItems = 18
+					gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(alphabet.colors), gl.STATIC_DRAW)
+					gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, alphabetVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0)
+
+					cubeVertexPositionBuffer = gl.createBuffer()
+					gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer)
+					gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cube.positions), gl.STATIC_DRAW)
+					cubeVertexPositionBuffer.itemSize = 3
+					cubeVertexPositionBuffer.numItems = cube.positions.length/3
+					
+					cubeTextureCoordBuffer = gl.createBuffer()
+
+					gl.bindBuffer(gl.ARRAY_BUFFER, cubeTextureCoordBuffer)
+					var textureCoords = [
+						// Front face
+						0.0, 0.0,
+						1.0, 0.0,
+						1.0, 1.0,
+						0.0, 1.0,
+						// Bottom face
+						1.0, 1.0,
+						0.0, 1.0,
+						0.0, 0.0,
+						1.0, 0.0,
+						// Left face
+						0.0, 0.0,
+						1.0, 0.0,
+						1.0, 1.0,
+						0.0, 1.0
+					]
+					gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW)
+					cubeTextureCoordBuffer.itemSize = 2
+					cubeTextureCoordBuffer.numItems = 12
+
+					// Cube Indices
+					cubeVertexIndexBuffer = gl.createBuffer()
+					gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer)
+					var cubeVertexIndices = [
+						0, 1, 2, 0, 2, 3,    // Front face
+						4, 5, 6, 4, 6, 7,    // Back face
+						8, 9, 10, 8, 10, 11  // Top face
+					]
+					gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cubeVertexIndices), gl.STATIC_DRAW)
+					cubeVertexIndexBuffer.itemSize = 1
+					cubeVertexIndexBuffer.numItems = 18
+
+
+					// Cube Normals
+					cubeVertexNormalBuffer = gl.createBuffer()
+					gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexNormalBuffer)
+					var vertexNormals = [
+						// Left face
+						-1.0, 0.0, 0.0,
+						-1.0, 0.0, 0.0,
+						-1.0, 0.0, 0.0,
+						-1.0, 0.0, 0.0,
+						
+						// Bottom face
+						0.0, -1.0, 0.0,
+						0.0, -1.0, 0.0,
+						0.0, -1.0, 0.0,
+						0.0, -1.0, 0.0,
+						
+						// Back face
+						0.0, 0.0, -1.0,
+						0.0, 0.0, -1.0,
+						0.0, 0.0, -1.0,
+						0.0, 0.0, -1.0
+					]
+					gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals), gl.STATIC_DRAW)
+					cubeVertexNormalBuffer.itemSize = 3
+					cubeVertexNormalBuffer.numItems = vertexNormals.length/3
+
+					attrs.alphabetVertexPositionBuffer = alphabetVertexPositionBuffer
+					attrs.alphabetVertexColorBuffer = alphabetVertexColorBuffer
+
+					attrs.cubeVertexPositionBuffer = cubeVertexPositionBuffer
+					attrs.cubeTextureCoordBuffer = cubeTextureCoordBuffer
+					attrs.cubeVertexIndexBuffer = cubeVertexIndexBuffer
+					attrs.cubeVertexNormalBuffer = cubeVertexNormalBuffer
+
+					attrs.alphabet = alphabet
+					attrs.cube = cube
+				}
+
+				this.update = function(){
+
+					var collision = alphabet.checkCollision().collide
+					if(collision != "none"){
+						switch(collision){
+							case "left":
+							case "right":
+								alphabet.xSpeed*=(-1)       
+								break
+							case "top":
+							case "bottom":
+								alphabet.ySpeed*=(-1)       
+								break
+							case "front":
+							case "back":
+								alphabet.zSpeed*=(-1)       
+								break
+						}
+					}
+
+					do3dTranslation(alphabet)
+					do2dRotation(alphabet.positions,toRadians(
+						alphabet.isClockWiseRotation?1:(-1)
+					),alphabet.x,alphabet.z,0,2,alphabet.xSpeed,alphabet.ySpeed)
+					alphabet.yRotation+=alphabet.isClockWiseRotation?1:(-1)
+				}
+			}
+			
+			function Scene(obj) {
+				var obj = obj
+				var gl = obj.gl
+				var mvMatrix = mat4.create()
+				var pMatrix = mat4.create()
+
+				this.mvMatrix = mvMatrix
+				this.pMatrix = pMatrix
+
+				this.obj = obj
+				var shaderProgram = obj.shaderProgram
+				this.shaderProgram = shaderProgram
+
+				function setMatrixUniforms(shaderProgram,n) {
+					gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix)
+					gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix)  
+				}
+
+				this.defaultDrawScene = function(){
+					gl.disableVertexAttribArray(shaderProgram.vertexColorAttribute);
+					gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute)
+					gl.vertexAttrib4f(shaderProgram.vertexColorAttribute, 1, 1, 1, 1);
+
+					gl.bindBuffer(gl.ARRAY_BUFFER, obj.cubeVertexPositionBuffer)
+					gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(obj.cube.positions), gl.STATIC_DRAW)
+					gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, obj.cubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0)
+
+					gl.bindBuffer(gl.ARRAY_BUFFER, obj.cubeTextureCoordBuffer)
+					gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, obj.cubeTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0)
+
+					gl.activeTexture(gl.TEXTURE0)
+					gl.bindTexture(gl.TEXTURE_2D, obj.crateTextures[2])
+					gl.uniform1i(shaderProgram.samplerUniform, 0)
+
+					gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, obj.cubeVertexIndexBuffer)
+					setMatrixUniforms(shaderProgram)
+
+					gl.drawElements(gl.TRIANGLES, obj.cubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0)
+
+					var whiteTex = gl.createTexture();
+					gl.disableVertexAttribArray(shaderProgram.textureCoordAttribute);
+					gl.bindTexture(gl.TEXTURE_2D, whiteTex);
+					gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0.5, 0.5, 1.0, 1.0]));
+
+					gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
+					gl.bindBuffer(gl.ARRAY_BUFFER, obj.alphabetVertexPositionBuffer)
+					gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(obj.alphabet.positions), gl.STATIC_DRAW)
+					gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, obj.alphabetVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0)
+
+					setMatrixUniforms(shaderProgram)
+					gl.drawArrays(gl.TRIANGLE_STRIP, 0, obj.alphabetVertexPositionBuffer.numItems)
+				}
+				this.setGlViewPort = function(sx,sy,w,h){
+					gl.viewport(sx,sy,w,h)
+				}
+				this.drawScene = function(sx,sy,w,h){
+					this.setGlViewPort(sx,sy,w,h)
+					this.defaultDrawScene()
+				}
+			}
+
+			function canvasSplit(){
+				canvas1 = new Scene(initBuffers())
+				canvas2 = new Scene(initBuffers())
+				canvas3 = new Scene(initBuffers())
+				canvas4 = new Scene(initBuffers())
+			}
+			function toRadians (angle) {
+				return angle * (Math.PI / 180);
+			}
+			
+			var currentPressedKeys = {}
+			function pressKeyDown(event) {
+				currentPressedKeys[event.keyCode] = true
+			}
+			function pressKeyUp(event) {
+				currentPressedKeys[event.keyCode] = false
+			}	
+			var initSet
+			var scene1,scene2,scene3,scene4
+
+			function tick() {
+				gl.clearColor(0.0, 0.0, 0.0, 1.0);
+		        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+		        
+		        initSet.update()
+		        let width = gl.viewportWidth
+		        let height = gl.viewportHeight
+		        scene1.drawScene(0 * width / 2, 1 * height / 2, width / 2, height / 2)
+		        scene2.drawScene(1 * width / 2, 1 * height / 2, width / 2, height / 2)
+		        scene3.drawScene(0 * width / 2, 0 * height / 2, width / 2, height / 2)
+		        scene4.drawScene(1 * width / 2, 0 * height / 2, width / 2, height / 2)
+		        requestAnimationFrame(tick)
+			}
+			function webGLStart() {
+				var canvas = document.getElementById('mycanvas')
+				canvas.width = window.innerWidth
+        		canvas.height = window.innerHeight
+				document.onkeydown = pressKeyDown
+				document.onkeyup = pressKeyUp
+				initGL(canvas)
+
+				var textureShaderAttrInitializer = new function() {
+				  this.execute = function(gl,shaderProgram){
+					
+					gl.useProgram(shaderProgram)
+					
+					shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, 'aVertexPosition')
+					gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute)
+					
+					shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord")
+					gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute)
+
+					shaderProgram.vertexColorAttribute = gl.getAttribLocation(shaderProgram, 'aVertexColor')
+					gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute)
+					
+					shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, 'uPMatrix')
+					shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, 'uMVMatrix')
+					shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, 'uSampler')
+				  }
+				}
+
+				var shader = new Shader(gl,'texture-shader',textureShaderAttrInitializer)
+
+				initSet = new ObjectinitSet(gl,shader)
+				initSet.initBuffers()
+				
+				scene1 = new Scene(initSet)
+				scene2 = new Scene(initSet)
+				scene3 = new Scene(initSet)
+				scene4 = new Scene(initSet)
+
+				scene1.drawScene = function(sx,sy,w,h) {
+				  this.setGlViewPort(sx,sy,w,h)
+				  mat4.perspective(this.pMatrix, glMatrix.toRadian(45), gl.viewportWidth / gl.viewportHeight, 0.1, 1000.0)
+				  mat4.identity(this.mvMatrix)
+
+
+				  let cMatrix = mat4.create()
+				  mat4.rotateY(cMatrix, cMatrix, toRadians(45))
+				  mat4.rotateX(cMatrix, cMatrix, toRadians(-20))
+				  mat4.translate(cMatrix, cMatrix, [0,0,20])
+			
+				  mat4.invert(cMatrix,cMatrix)
+				  mat4.multiply(this.pMatrix, this.pMatrix,  cMatrix)
+				  
+				  this.defaultDrawScene()
+				}
+				
+				// let onMouseDown = document.addEventListener("onmousedown")
+				
+				scene2.xDegree = 0
+				scene2.yDegree = 0
+				scene2.onMouseDown = false
+				scene2.mouseDownHandler = function(event){
+				  scene2.onMouseDown = true
+				  scene2.lastX = event.pageX
+				  scene2.lastY = event.pageY
+				  // if right click
+				  if(event.which == 3){
+					scene2.xDegree = 0
+					scene2.yDegree = 0
+				  }
+				}
+				scene2.mouseUpHandler = function(event){
+				  scene2.onMouseDown = false
+				  scene2.lastX = event.pageX
+				  scene2.lastY = event.pageY
+				}
+				scene2.mouseMoveHandler = function(event){
+				  // if dragging left mouse button
+				  if(scene2.onMouseDown && event.which == 1){
+					if(scene2.xDegree<180){
+					  scene2.yDegree+=(scene2.lastX-event.pageX)
+					}
+					else{
+					  scene2.yDegree-=(scene2.lastX-event.pageX)
+					}
+					scene2.xDegree+=(scene2.lastY-event.pageY)
+					if(scene2.yDegree<0){scene2.yDegree+=360}
+					if(scene2.yDegree >= 360){scene2.yDegree-=360}
+					if(scene2.xDegree >= 360){scene2.xDegree-=360}
+					// console.log(scene2.lastX+" "+event.pageX+" = "+scene2.xDegree)
+					scene2.lastX = event.pageX
+					scene2.lastY = event.pageY
+				  }
+				}
+
+				document.getElementById('mycanvas').addEventListener('mousedown',scene2.mouseDownHandler,false)
+				document.getElementById('mycanvas').addEventListener('mousemove',scene2.mouseMoveHandler,true)
+				document.getElementById('mycanvas').addEventListener('mouseup',scene2.mouseUpHandler,false)
+
+
+				scene2.drawScene = function(sx,sy,w,h) {
+				  this.setGlViewPort(sx,sy,w,h)
+				  mat4.perspective(this.pMatrix, glMatrix.toRadian(45), gl.viewportWidth / gl.viewportHeight, 0.1, 1000.0)
+				  mat4.identity(this.mvMatrix)
+
+
+				  let cMatrix = mat4.create()
+				  mat4.rotateY(cMatrix, cMatrix, toRadians(45+this.yDegree))
+				  mat4.rotateX(cMatrix, cMatrix, toRadians(-20+this.xDegree))
+				  mat4.translate(cMatrix, cMatrix, [0,0,20])
+			
+				  mat4.invert(cMatrix,cMatrix)
+				  mat4.multiply(this.pMatrix, this.pMatrix,  cMatrix)
+				  
+				  this.defaultDrawScene()
+				}
+				
+				scene3.drawScene = function(sx,sy,w,h) {
+				  this.setGlViewPort(sx,sy,w,h)
+				  mat4.perspective(this.pMatrix, glMatrix.toRadian(45), gl.viewportWidth / gl.viewportHeight, 0.1, 1000.0)
+				  mat4.identity(this.mvMatrix)
+
+
+				  let cMatrix = mat4.create()
+				  var h = initSet.alphabet
+				  mat4.translate(cMatrix, cMatrix, [h.x,h.y+1.7,h.z])
+				  mat4.rotateY(cMatrix, cMatrix, toRadians(-(h.yRotation+90)))
+			
+				  mat4.invert(cMatrix,cMatrix)
+				  mat4.multiply(this.pMatrix, this.pMatrix,  cMatrix)
+				  
+				  this.defaultDrawScene()
+				}
+
+				scene4.rDegree = 0
+				scene4.drawScene = function(sx,sy,w,h) {
+				  this.setGlViewPort(sx,sy,w,h)
+				  gl.enable(gl.DEPTH_TEST)
+				  mat4.perspective(this.pMatrix, glMatrix.toRadian(45), gl.viewportWidth / gl.viewportHeight, 0.1, 1000.0)
+				  mat4.identity(this.mvMatrix)
+
+
+				  let cMatrix = mat4.create()
+				  mat4.rotateY(cMatrix, cMatrix, toRadians(45+this.rDegree++))
+				  mat4.rotateX(cMatrix, cMatrix, toRadians(-20))
+				  mat4.translate(cMatrix, cMatrix, [0,0,20])
+			
+				  mat4.invert(cMatrix,cMatrix)
+				  mat4.multiply(this.pMatrix, this.pMatrix,  cMatrix)
+				  
+				  this.defaultDrawScene()
+				}
+				
+				tick()
+			}
+		</script>
+	</head>
+	<body onload="webGLStart();">
+		<div>
+		<canvas id="mycanvas" style="border: none;" width="1000" height="1000"></canvas>
+		</div>
+		
+	</body>
 </html>
