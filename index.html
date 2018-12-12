@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Tugas 3</title>
+	<style type="text/css">
+		body {
+			margin: 0;
+			overflow: hidden;
+		}
+		canvas, div {
+			width: 50%;
+			height: 50%;
+			margin: 0px !important;
+		}
+	</style>
+</head>
+<body>
+	<div id="threeJSOutput1"></div>
+	<div id="threeJSOutput2"></div>
+	<div id="threeJSOutput3"></div>
+	<div id="threeJSOutput4"></div>
+	<script type="text/javascript" src="js/three.js"></script>
+	<script type="text/javascript" src="js/orbitControls.js"></script>
+	<script type="text/javascript" src="js/dat.gui.js"></script>
+	<script type="text/javascript">
+		var scene;
+		var camera1, camera2, camera3, camera4;
+		var renderer1, renderer2, renderer3, renderer4;
+
+		function init() {
+			scene = new THREE.Scene();
+
+			camera1 = new THREE.PerspectiveCamera(
+				45,
+				(window.innerWidth/2 - 1)/(window.innerHeight/2),
+				0.01,
+				1000.00);
+			camera1.position.set(8,0,-10);
+			camera1.lookAt(scene.position);
+
+			camera2 = new THREE.PerspectiveCamera(
+				45,
+				(window.innerWidth/2)/(window.innerHeight/2),
+				0.01,
+				1000.00);
+			camera2.position.set(8,0,-10);
+			camera2.lookAt(scene.position);
+
+			camera3 = new THREE.PerspectiveCamera(
+				45,
+				(window.innerWidth/2)/(window.innerHeight/2),
+				0.01,
+				1000.00);
+			camera3.position.set(8,0,-10);
+			camera3.lookAt(scene.position);
+
+			camera4 = new THREE.PerspectiveCamera(
+				45,
+				(window.innerWidth/2)/(window.innerHeight/2),
+				0.01,
+				1000.00);
+			camera4.position.set(8,0,-10);
+			camera4.lookAt(scene.position);
+
+			renderer1 = new THREE.WebGLRenderer();
+			renderer1.setClearColor(new THREE.Color("rgb(255,255,255)"));
+			renderer1.setSize((window.innerWidth/2),(window.innerHeight/2));
+			renderer1.shadowMap.Enabled = true;
+
+			renderer2 = new THREE.WebGLRenderer();
+			renderer2.setClearColor(new THREE.Color("rgb(255,255,255)"));
+			renderer2.setSize((window.innerWidth/2),(window.innerHeight/2));
+			renderer2.shadowMap.Enabled = true;
+
+			renderer3 = new THREE.WebGLRenderer();
+			renderer3.setClearColor(new THREE.Color("rgb(255,255,255)"));
+			renderer3.setSize((window.innerWidth/2),(window.innerHeight/2));
+			renderer3.shadowMap.Enabled = true;
+
+			renderer4 = new THREE.WebGLRenderer();
+			renderer4.setClearColor(new THREE.Color("rgb(255,255,255)"));
+			renderer4.setSize((window.innerWidth/2),(window.innerHeight/2));
+			renderer4.shadowMap.Enabled = true;
+
+			var cubeGeometry = new THREE.BoxGeometry(5, 5, 5);
+			var cubeMaterial = new THREE.MeshLambertMaterial({
+				color: "#000000",
+				wireframe: true
+			});
+			var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+			cube.position.x = 0;
+			cube.position.y = 0;
+			cube.position.z = 0;
+			cube.rotation.x = 0;
+			cube.rotation.y = 0;
+			cube.rotation.z = 0;
+
+			scene.add(cube);
+
+			var wall1Geometry = new THREE.PlaneGeometry(5, 5);
+			var wall1Material = new THREE.MeshLambertMaterial({
+				color: "#000000",
+				wireframe: false
+			});
+			var wall1 = new THREE.Mesh(wall1Geometry, wall1Material);
+			wall1.position.x = 0;
+			wall1.position.y = 0;
+			wall1.position.z = 5;
+			wall1.rotation.x = 0;
+			wall1.rotation.y = 0;
+			wall1.rotation.z = Math.PI/2;
+
+			scene.add(wall1);
+
+			var targetGeometry = new THREE.BoxGeometry(0.5,0.5,0.5);
+			var targetMaterial = new THREE.MeshStandardMaterial({
+				color: 0x7777ff,
+				wireframe: false
+			});
+			var target = new THREE.Mesh(targetGeometry, targetMaterial);
+			target.position.x = 0;
+			target.position.y = 0;
+			target.position.z = 0;
+			scene.add(target);
+
+			var ambientLight = new THREE.AmbientLight({color: 0xffffff});
+			scene.add(ambientLight);
+			var spotLight = new THREE.SpotLight( 0xffffff );
+			spotLight.position.set( 0, 1000, 0 );
+
+			spotLight.castShadow = true;
+
+			spotLight.shadow.mapSize.width = 1024;
+			spotLight.shadow.mapSize.height = 1024;
+
+			spotLight.shadow.camera.near = 500;
+			spotLight.shadow.camera.far = 4000;
+			spotLight.shadow.camera.fov = 30;
+
+			scene.add( spotLight );
+
+			document.getElementById("threeJSOutput1").appendChild(renderer1.domElement);
+			document.getElementById("threeJSOutput2").appendChild(renderer2.domElement);
+			document.getElementById("threeJSOutput3").appendChild(renderer3.domElement);
+			document.getElementById("threeJSOutput4").appendChild(renderer4.domElement);
+
+			var rotY = 0.05;
+			var xMove = (Math.random() * 0.5) - 0.25;
+			var yMove = (Math.random() * 0.5) - 0.25;
+			var zMove = (Math.random() * 0.5) - 0.25;
+
+			function animate() {
+				requestAnimationFrame(animate);
+
+				target.position.x += xMove * 0.1;
+				target.position.y += yMove * 0.1;
+				target.position.z += zMove * 0.1;
+				target.rotation.y += rotY;
+				if ((target.position.x <= -2.5) || (target.position.x >= 2.5)) {
+					xMove *= -1;
+					rotY *= -1;
+				}
+				if ((target.position.y <= -2.5) || (target.position.y >= 2.5)) {
+					yMove *= -1;
+					rotY *= -1;
+				}
+				if ((target.position.z <= -2.5) || (target.position.z >= 2.5)) {
+					zMove *= -1;
+					rotY *= -1;
+				}
+				
+				renderer1.render(scene, camera1);
+				renderer2.render(scene, camera2);
+				renderer3.render(scene, camera3);
+				renderer4.render(scene, camera4);
+			}
+			animate();
+		}
+		
+	    window.onload = init;
+
+	</script>
+</body>
+</html>
